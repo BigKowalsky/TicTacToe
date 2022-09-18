@@ -1,5 +1,6 @@
 package com.kodillamyproject.tictactoe;
 
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
@@ -8,7 +9,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Cell;
 import javafx.scene.image.Image;
-import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -21,7 +21,6 @@ import java.util.List;
 public class TicTacToe extends Application {
     private String playerMark = "X";
     private String computerMark = "O";
-    private Label label;
     private Cell[][] cell = new Cell[3][3];
     private Button[][] mainBoard;
     private int counter = 0;
@@ -34,7 +33,7 @@ public class TicTacToe extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         BackgroundSize backgroundSize = new BackgroundSize(120, 100, true, true, true, false);
         BackgroundImage backgroundImage = new BackgroundImage(image, BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, backgroundSize);
         Background background = new Background(backgroundImage);
@@ -48,7 +47,6 @@ public class TicTacToe extends Application {
             for (int j = 0; j < 3; j++) {
                 cell[i][j] = new Cell();
                 grid.add(cell[i][j], j, i);
-
             }
         }
 
@@ -82,14 +80,13 @@ public class TicTacToe extends Application {
     }
     public void markX(ActionEvent actionEvent) {
         Button click = (Button) actionEvent.getTarget();
-        if (counter++ % 2 == 0) {
-            click.setText(playerMark);
-            click.setDisable(true);
-            checkWon();
-
-        } else {
-            computerTurn();
-        }
+        click.setText(playerMark);
+        click.setDisable(true);
+        counter++;
+       if (checkWon()) {
+                return;
+            }
+        computerTurn();
     }
 
     public void clear(ActionEvent actionEvent1) {
@@ -106,16 +103,28 @@ public class TicTacToe extends Application {
     }
 
     private void close(ActionEvent actionEvent2) {
-        Button close1 = (Button) actionEvent2.getTarget();
-        alertFinish();
+        Button close1 = (Button) actionEvent2.getTarget(); {
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    mainBoard[i][j].setText("");
+                    mainBoard[i][j].setDisable(true);
+                }
+            }
+            alertFinish();
+        }
     }
 
     private void computerTurn() {
         int x = (int) (Math.random() * 3);
         int y = (int) (Math.random() * 3);
+        if (!mainBoard[x][y].isDisabled()) {
             mainBoard[x][y].setText(computerMark);
             mainBoard[x][y].setDisable(true);
-        checkWon();
+            counter++;
+            checkWon();
+        } else {
+            computerTurn();
+        }
     }
 
     private List<String> getWiningLine() {
@@ -132,7 +141,15 @@ public class TicTacToe extends Application {
 
         return winingLines;
     }
-    public void checkWon() {
+    public boolean checkWon() {
+        if (counter < 5) {
+            return false;
+        }
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         for (String lines : getWiningLine()) {
             if (lines.equals(playerMark + playerMark + playerMark)) {
                 for (int i = 0; i < 3; i++) {
@@ -141,6 +158,7 @@ public class TicTacToe extends Application {
                     }
                 }
                 alert1();
+                return true;
             } else if (lines.equals(computerMark + computerMark + computerMark)) {
                 for (int i = 0; i < 3; i++) {
                     for (int j = 0; j < 3; j++) {
@@ -148,6 +166,7 @@ public class TicTacToe extends Application {
                     }
                 }
                 alert2();
+                return true;
             } else if (counter == 9 && !lines.equals(playerMark + playerMark + playerMark) && !lines.equals(computerMark + computerMark + computerMark)) {
                 for (int i = 0; i < 3; i++) {
                     for (int j = 0; j < 3; j++) {
@@ -155,8 +174,10 @@ public class TicTacToe extends Application {
                     }
                 }
                 alert3();
+                return true;
             }
         }
+        return false;
     }
 
     private void alert1() {
@@ -180,6 +201,7 @@ public class TicTacToe extends Application {
             alert.setContentText("Draw! Nobody won!");
             alert.show();
     }
+
     private void alertFinish() {
             alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Finish Game");
